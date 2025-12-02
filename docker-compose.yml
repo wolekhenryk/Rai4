@@ -1,0 +1,22 @@
+services:
+  postgres-db:
+    image: postgres:18
+    container_name: rai4_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: rai4_db
+      POSTGRES_USER: hw
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "38432:5432"
+    volumes:
+      - rai4_postgres_vol:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hw -d rai4_db || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  rai4_postgres_vol:
+    driver: local
