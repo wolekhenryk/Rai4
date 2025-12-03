@@ -13,20 +13,32 @@ public class ZtmClient(
     IMemoryCache memoryCache) : IZtmClient
 {
     private const string BusStopsCacheKey = "ZtmBusStops";
-    public async Task<List<BusStopJson>> GetAllBusStopsAsync(CancellationToken cancellationToken = default)
+
+    public async Task<List<FriendlyStop>> GetAllBusStopsAsync(CancellationToken cancellationToken = default)
     {
-        if (memoryCache.TryGetValue<List<BusStopJson>>(BusStopsCacheKey, out var busStops))
+        if (memoryCache.TryGetValue<List<FriendlyStop>>(BusStopsCacheKey, out var busStops))
             return busStops!;
-        
+
         var opts = options.Value;
 
-        var resp = await httpClient.GetAsync(opts.GetAllStopsUrl, cancellationToken);
+        using var resp = await httpClient.GetAsync(opts.GetAllStopsUrl, cancellationToken);
         resp.EnsureSuccessStatusCode();
 
-        var json = await resp.Content.ReadFromJsonAsync<Dictionary<string, TransitData>>(cancellationToken: cancellationToken);
+        var json =
+            await resp.Content.ReadFromJsonAsync<Dictionary<string, TransitData>>(cancellationToken: cancellationToken);
         var stops = json?.First().Value.Stops ?? [];
-        memoryCache.Set(BusStopsCacheKey, stops, TimeSpan.FromHours(69));
-        return stops;
+        var friendlyStops = stops
+            .Where(s => s.StopName != null && s.StopName != "no name")
+            .DistinctBy(s => s.StopName)
+            .Select(s => new FriendlyStop
+            {
+                StopId = s.StopId,
+                StopName = s.StopName ?? "no name"
+            })
+            .OrderBy(s => s.StopName)
+            .ToList();
+        memoryCache.Set(BusStopsCacheKey, friendlyStops, TimeSpan.FromHours(69));
+        return friendlyStops;
     }
 
     public async Task<StopDepartures> GetStopDeparturesAsync(int stopId, CancellationToken cancellationToken = default)

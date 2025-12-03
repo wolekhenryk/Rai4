@@ -51,17 +51,29 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import type { LoginRequest } from "@/types";
+import { apiService } from "@/services/apiService";
 
+const router = useRouter();
 const email = ref("");
 const password = ref("");
 
-const handleLogin = () => {
-  const loginData: LoginRequest = {
-    email: email.value,
-    password: password.value,
-  };
-  console.log("Login attempt:", loginData);
-  // Add login logic here later
+const handleLogin = async () => {
+  try {
+    const loginData: LoginRequest = {
+      email: email.value,
+      password: password.value,
+    };
+
+    const loginResponse = await apiService.login(loginData);
+    console.log("Login Response:", loginResponse);
+
+    // Redirect to dashboard after successful login
+    router.push("/");
+  } catch (error) {
+    console.error("Login failed:", error);
+    // Handle login error (show error message to user)
+  }
 };
 </script>

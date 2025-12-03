@@ -77,6 +77,9 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
+// CORS must be before authentication
+app.UseCors("Rai4Policy");
+
 // Authentication & Authorization middleware (order matters!)
 app.UseAuthentication();
 app.UseAuthorization();

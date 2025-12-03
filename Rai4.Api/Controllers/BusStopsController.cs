@@ -2,8 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rai4.Application.Dto.BusStop;
+using Rai4.Application.Dto.Json;
 using Rai4.Application.Features.BusStopFeatures.Commands;
 using Rai4.Application.Features.BusStopFeatures.Queries;
+using Rai4.Application.Services.Interfaces;
 
 namespace Rai4.Api.Controllers;
 
@@ -13,15 +15,10 @@ namespace Rai4.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class BusStopsController : ControllerBase
+public class BusStopsController(
+    IMediator mediator,
+    IZtmClient ztmClient) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public BusStopsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     /// <summary>
     /// Gets all bus stops
     /// </summary>
@@ -32,7 +29,20 @@ public class BusStopsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var query = new GetAllBusStopsQuery();
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
+        return Ok(result);
+    }
+    
+    /// <summary>
+    /// Gets all ZTM bus stops from external service
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("all")]
+    public async Task<ActionResult<List<FriendlyStop>>> GetAllZtmBusStops(
+        CancellationToken cancellationToken = default)
+    {
+        var result = await ztmClient.GetAllBusStopsAsync(cancellationToken);
         return Ok(result);
     }
 
@@ -42,13 +52,13 @@ public class BusStopsController : ControllerBase
     /// <param name="id">Bus stop ID</param>
     /// <param name="cancellationToken"></param>
     /// <returns>Bus stop details</returns>
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult<BusStopDto>> GetBusStopById(
         int id,
         CancellationToken cancellationToken = default)
     {
         var query = new GetBusStopByIdQuery { Id = id };
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
 
         if (result == null)
             return NotFound($"Bus stop with ID {id} not found");
@@ -72,7 +82,7 @@ public class BusStopsController : ControllerBase
             Name = dto.Name,
             ZtmStopId = dto.ZtmStopId
         };
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
         return CreatedAtAction(nameof(GetBusStopById), new { id = result.Id }, result);
     }
 
@@ -95,7 +105,7 @@ public class BusStopsController : ControllerBase
             Name = dto.Name,
             ZtmStopId = dto.ZtmStopId
         };
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
         return Ok(result);
     }
 
@@ -111,7 +121,7 @@ public class BusStopsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var command = new DeleteBusStopCommand { Id = id };
-        await _mediator.Send(command, cancellationToken);
+        await mediator.Send(command, cancellationToken);
         return NoContent();
     }
 }

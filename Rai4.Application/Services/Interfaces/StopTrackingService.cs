@@ -6,10 +6,10 @@ namespace Rai4.Application.Services.Interfaces;
 
 public class StopTrackingService(IHubContext<BusStopHub, IBusStopClient> hubContext) : IStopTrackingService
 {
-    public Task BroadcastStopSchedule(int stopId, StopDepartures stopDeparture, CancellationToken cancellationToken = default)
+    public Task BroadcastStopSchedule(int stopId, string stopName, StopDepartures stopDeparture, CancellationToken cancellationToken = default)
     {
         return hubContext.Clients
             .Group($"stop_{stopId}")
-            .ReceiveStopUpdatesAsync(stopDeparture);
+            .ReceiveStopUpdatesAsync(stopId, stopName, stopDeparture);
     }
 }

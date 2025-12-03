@@ -17,14 +17,15 @@ public class BusStopRepository(AppDbContext dbContext) : Repository<BusStop>(dbC
             .ToListAsync(cancellationToken);
     }
 
-    public Task<List<int>> GetByUserIdsAsync(List<int> userIds, CancellationToken cancellationToken = default)
+    public async Task<List<BusStop>> GetByUserIdsAsync(List<int> userIds, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Set<BusStop>()
+        var stops = await _dbContext.Set<BusStop>()
+            .IgnoreQueryFilters()
             .AsNoTracking()
             .Where(bs => userIds.Contains(bs.UserId))
-            .Select(bs => bs.ZtmStopId)
-            .Distinct()
             .ToListAsync(cancellationToken);
+        
+        return stops.DistinctBy(s => s.Id).ToList();
     }
 
     public async Task<BusStop?> GetByIdWithUserAsync(int id, CancellationToken cancellationToken = default)

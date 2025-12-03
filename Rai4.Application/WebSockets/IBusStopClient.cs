@@ -5,5 +5,5 @@ namespace Rai4.Application.WebSockets;
 
 public interface IBusStopClient
 {
-    Task ReceiveStopUpdatesAsync(StopDepartures busLocationDto);
+    Task ReceiveStopUpdatesAsync(int stopId, string stopName, StopDepartures busLocationDto);
 }

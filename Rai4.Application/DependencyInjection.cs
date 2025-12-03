@@ -44,6 +44,18 @@ public static class DependencyInjection
 
         // Register background service for polling and pushing updates
         services.AddHostedService<BackgroundSignalRPush>();
+        
+        
+        services.AddCors(options =>
+        {
+            options.AddPolicy("Rai4Policy", policy =>
+            {
+                policy.WithOrigins("http://localhost:5173")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
 
         return services;
     }

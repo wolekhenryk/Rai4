@@ -6,6 +6,12 @@ public class TransitData
     public List<BusStopJson> Stops { get; set; }
 }
 
+public class FriendlyStop
+{
+    public int StopId { get; set; }
+    public string StopName { get; set; }
+}
+
 public class BusStopJson
 {
     public int StopId { get; set; }

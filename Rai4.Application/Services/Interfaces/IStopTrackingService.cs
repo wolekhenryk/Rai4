@@ -4,6 +4,6 @@ namespace Rai4.Application.Services.Interfaces;
 
 public interface IStopTrackingService
 {
-    Task BroadcastStopSchedule(int stopId, StopDepartures stopDeparture,
+    Task BroadcastStopSchedule(int stopId, string stopName, StopDepartures stopDeparture,
         CancellationToken cancellationToken = default);
 }
